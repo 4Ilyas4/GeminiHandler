@@ -15,23 +15,38 @@ public class GeminiService {
 
     private final RestTemplate restTemplate;
     private final String apiUrlTemplate;
+    private final Map<String, List<String>> conversationHistory;
 
     public GeminiService(RestTemplate restTemplate, @Value("${gemini.api.url}") String apiUrlTemplate) {
         this.restTemplate = restTemplate;
         this.apiUrlTemplate = apiUrlTemplate;
+        this.conversationHistory = new HashMap<>();
     }
 
-    public String callApi(String prompt, String geminiKey) {
-        String apiUrl = String.format(apiUrlTemplate, geminiKey);
+    public String callApi(String prompt, String sessionId) {
+        String apiUrl = String.format(apiUrlTemplate);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
 
+        // Retrieve or initialize the conversation history for the session
+        List<String> history = conversationHistory.computeIfAbsent(sessionId, k -> new ArrayList<>());
+
+        // Add the new prompt to the history
+        history.add(prompt);
+
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode contentNode = objectMapper.createObjectNode();
-        ObjectNode partsNode = objectMapper.createObjectNode();
-        partsNode.put("text", prompt);
-        contentNode.set("parts", objectMapper.createArrayNode().add(partsNode));
+        ArrayNode partsArray = objectMapper.createArrayNode();
+
+        // Include all previous prompts as context
+        for (String message : history) {
+            ObjectNode partsNode = objectMapper.createObjectNode();
+            partsNode.put("text", message);
+            partsArray.add(partsNode);
+        }
+
+        contentNode.set("parts", partsArray);
         ObjectNode requestBodyNode = objectMapper.createObjectNode();
         requestBodyNode.set("contents", objectMapper.createArrayNode().add(contentNode));
 
@@ -58,3 +73,4 @@ public class GeminiService {
         return response.getBody();
     }
 }
+
