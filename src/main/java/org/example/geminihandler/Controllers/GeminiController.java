@@ -21,10 +21,10 @@ public class GeminiController {
     }
 
     @GetMapping("/generate")
-    public ResponseEntity<String> generate(@RequestParam("prompt") String prompt) {
+    public ResponseEntity<String> generate(@RequestParam("prompt") String prompt, 
+                                           @RequestParam("sessionId") String sessionId) {
         try {
-            String apiKey = "AIzaSyBRnFbQInh-VraMQ74CVsCUlnPO9XLMu84";
-            String response = service.callApi(prompt, apiKey);
+            String response = service.callApi(prompt, sessionId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -32,3 +32,4 @@ public class GeminiController {
         }
     }
 }
+
