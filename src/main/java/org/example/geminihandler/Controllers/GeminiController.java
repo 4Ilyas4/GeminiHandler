@@ -20,6 +20,18 @@ public class GeminiController {
         this.service = service;
     }
 
+    @GetMapping("/history")
+    public ResponseEntity<List<String>> getHistory(@RequestParam("sessionId") String sessionId) {
+        List<String> history = service.getConversationHistory(sessionId);
+        return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/clear")
+    public ResponseEntity<String> clearHistory(@RequestParam("sessionId") String sessionId) {
+        service.clearConversationHistory(sessionId);
+        return ResponseEntity.ok("History cleared for session: " + sessionId);
+    }
+    
     @GetMapping("/generate")
     public ResponseEntity<String> generate(@RequestParam("prompt") String prompt, 
                                            @RequestParam("sessionId") String sessionId) {
