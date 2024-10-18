@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class GeminiApplication {
+public class GeminiHandlerApplication {
     public static void main(String[] args) {
         SpringApplication.run(GeminiApplication.class, args);
     }
