@@ -16,11 +16,14 @@ public class GeminiService {
     private final RestTemplate restTemplate;
     private final String apiUrlTemplate;
     private final Map<String, List<String>> conversationHistory;
+    private final Map<String, Long> sessionTimestamps; // Track session timestamps
+    private static final long SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 
     public GeminiService(RestTemplate restTemplate, @Value("${gemini.api.url}") String apiUrlTemplate) {
         this.restTemplate = restTemplate;
         this.apiUrlTemplate = apiUrlTemplate;
         this.conversationHistory = new HashMap<>();
+        this.sessionTimestamps = new HashMap<>();
     }
 
     public String callApi(String prompt, String sessionId) {
@@ -34,6 +37,7 @@ public class GeminiService {
 
         // Add the new prompt to the history
         history.add(prompt);
+        sessionTimestamps.put(sessionId, System.currentTimeMillis()); // Update the last activity timestamp
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode contentNode = objectMapper.createObjectNode();
@@ -72,5 +76,25 @@ public class GeminiService {
 
         return response.getBody();
     }
+
+    // Method to clean up old sessions
+    @Scheduled(fixedRate = 60 * 60 * 1000) // Runs every hour
+    public void cleanUpOldSessions() {
+        long now = System.currentTimeMillis();
+        List<String> expiredSessions = new ArrayList<>();
+
+        for (Map.Entry<String, Long> entry : sessionTimestamps.entrySet()) {
+            if (now - entry.getValue() > SESSION_TIMEOUT) {
+                expiredSessions.add(entry.getKey());
+            }
+        }
+
+        // Remove expired sessions
+        for (String sessionId : expiredSessions) {
+            conversationHistory.remove(sessionId);
+            sessionTimestamps.remove(sessionId);
+        }
+    }
 }
+
 
