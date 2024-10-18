@@ -23,26 +23,26 @@ import org.slf4j.LoggerFactory;
 public class GeminiService {
 
     private final RestTemplate restTemplate;
-    private final String apiUrlTemplate;
-    private final String apiKey; // API Key variable
+    private final String apiUrlTemplate; // Template for the API URL
     private final Map<String, List<String>> conversationHistory;
     private final Map<String, Long> sessionTimestamps; // Track session timestamps
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
     private static final Logger logger = LoggerFactory.getLogger(GeminiService.class); // Логгер
 
+    @Value("${gemini.api.key}")
+    private String apiKey; // API Key variable
+
     public GeminiService(RestTemplate restTemplate,
-                         @Value("${gemini.api.url}") String apiUrlTemplate,
-                         @Value("${gemini.api.key}") String apiKey) { // Inject the API key
+                         @Value("${gemini.api.url}") String apiUrlTemplate) {
         this.restTemplate = restTemplate;
         this.apiUrlTemplate = apiUrlTemplate;
-        this.apiKey = apiKey; // Initialize the API key
         this.conversationHistory = new HashMap<>();
         this.sessionTimestamps = new HashMap<>();
     }
 
     public String callApi(String prompt, String sessionId) {
-        // Append the API key as a query parameter
-        String apiUrl = apiUrlTemplate + "?key=" + apiKey;
+        // Format the API URL with the API key
+        String apiUrl = String.format(apiUrlTemplate, apiKey);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
@@ -118,6 +118,7 @@ public class GeminiService {
         }
     }
 }
+
 
 
 
