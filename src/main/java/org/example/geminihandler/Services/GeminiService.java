@@ -98,6 +98,16 @@ public class GeminiService {
         return response.getBody();
     }
 
+    public List<String> getConversationHistory(String sessionId) {
+        return conversationHistory.getOrDefault(sessionId, new ArrayList<>());
+    }
+
+    public void clearConversationHistory(String sessionId) {
+        conversationHistory.remove(sessionId);
+        sessionTimestamps.remove(sessionId);
+        logger.info("Cleared conversation history for session: {}", sessionId);
+    }
+
     // Method to clean up old sessions
     @Scheduled(fixedRate = 60 * 60 * 1000) // Runs every hour
     public void cleanUpOldSessions() {
